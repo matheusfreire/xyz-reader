@@ -12,6 +12,7 @@ import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
+import android.support.v7.widget.Toolbar;
 import android.text.Html;
 import android.text.format.DateUtils;
 import android.util.Log;
@@ -30,6 +31,9 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Locale;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+
 /**
  * An activity representing a list of Articles. This activity has different presentations for
  * handset and tablet-size devices. On handsets, the activity presents a list of items, which when
@@ -40,8 +44,15 @@ public class ArticleListActivity extends AppCompatActivity implements LoaderMana
 
     private static final String TAG = ArticleListActivity.class.toString();
     public static final String PATTERN_DATE_ISO8601 = "yyyy-MM-dd'T'HH:mm:ss.sss";
-    private SwipeRefreshLayout mSwipeRefreshLayout;
-    private RecyclerView mRecyclerView;
+
+    @BindView(R.id.swipe_refresh_layout)
+    SwipeRefreshLayout mSwipeRefreshLayout;
+
+    @BindView(R.id.recycler_view)
+    RecyclerView mRecyclerView;
+
+    @BindView(R.id.toolbar)
+    Toolbar mToolbar;
 
     private SimpleDateFormat dateFormat = new SimpleDateFormat(PATTERN_DATE_ISO8601, Locale.getDefault());
     // Use default locale format
@@ -53,15 +64,13 @@ public class ArticleListActivity extends AppCompatActivity implements LoaderMana
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_article_list);
-
-        mSwipeRefreshLayout = findViewById(R.id.swipe_refresh_layout);
-
-        mRecyclerView = findViewById(R.id.recycler_view);
-//        getLoaderManager().initLoader(0, null, this);
+        ButterKnife.bind(this);
         getLoaderManager().initLoader(0, null, this);
         if (savedInstanceState == null) {
             refresh();
         }
+        setSupportActionBar(mToolbar);
+        getSupportActionBar().setDisplayShowTitleEnabled(false);
     }
 
     private void refresh() {
@@ -71,8 +80,7 @@ public class ArticleListActivity extends AppCompatActivity implements LoaderMana
     @Override
     protected void onStart() {
         super.onStart();
-        registerReceiver(mRefreshingReceiver,
-                new IntentFilter(UpdaterService.BROADCAST_ACTION_STATE_CHANGE));
+        registerReceiver(mRefreshingReceiver,new IntentFilter(UpdaterService.BROADCAST_ACTION_STATE_CHANGE));
     }
 
     @Override
@@ -108,8 +116,7 @@ public class ArticleListActivity extends AppCompatActivity implements LoaderMana
         adapter.setHasStableIds(true);
         mRecyclerView.setAdapter(adapter);
         int columnCount = getResources().getInteger(R.integer.list_column_count);
-        StaggeredGridLayoutManager sglm =
-                new StaggeredGridLayoutManager(columnCount, StaggeredGridLayoutManager.VERTICAL);
+        StaggeredGridLayoutManager sglm = new StaggeredGridLayoutManager(columnCount, StaggeredGridLayoutManager.VERTICAL);
         mRecyclerView.setLayoutManager(sglm);
     }
 

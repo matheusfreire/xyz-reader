@@ -15,12 +15,13 @@ buildscript {
 
 allprojects {
     repositories {
+        google()
         jcenter()
     }
 
     ext {
         androidSupportVersion = "27.1.1"
-
+        butterKnifeVersion = "8.8.1"
     }
 }
 
