@@ -1,25 +1,21 @@
 package com.example.xyzreader.ui;
 
-import android.app.LoaderManager;
-import android.content.Loader;
 import android.database.Cursor;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
-
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.Loader;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBar;
-
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.TypedValue;
-
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowInsets;
 
 import com.example.xyzreader.R;
 import com.example.xyzreader.data.ArticleLoader;
@@ -31,8 +27,7 @@ import butterknife.ButterKnife;
 /**
  * An activity representing a single Article detail screen, letting you swipe between articles.
  */
-public class ArticleDetailActivity extends AppCompatActivity
-        implements LoaderManager.LoaderCallbacks<Cursor> {
+public class ArticleDetailActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
 
     private Cursor mCursor;
     private long mStartId;
@@ -41,7 +36,6 @@ public class ArticleDetailActivity extends AppCompatActivity
     private int mSelectedItemUpButtonFloor = Integer.MAX_VALUE;
     private int mTopInset;
 
-    @BindView(R.id.pager)
     ViewPager mPager;
     private MyPagerAdapter mPagerAdapter;
     private View mUpButton;
@@ -62,7 +56,7 @@ public class ArticleDetailActivity extends AppCompatActivity
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
 
-        getLoaderManager().initLoader(0, null, this);
+        getSupportLoaderManager().initLoader(0, null, this);
 
         mPagerAdapter = new MyPagerAdapter(getSupportFragmentManager());
         mPager.setAdapter(mPagerAdapter);
@@ -89,14 +83,6 @@ public class ArticleDetailActivity extends AppCompatActivity
             }
         });
 
-
-        mUpButton = findViewById(R.id.action_up);
-        mUpButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                onSupportNavigateUp();
-            }
-        });
 
 //        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
 //            mUpButtonContainer.setOnApplyWindowInsetsListener(new View.OnApplyWindowInsetsListener() {
