@@ -1,50 +1,63 @@
 package com.example.xyzreader.ui;
 
 import android.database.Cursor;
-import android.graphics.drawable.ColorDrawable;
-import android.os.Build;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
-import android.support.v4.view.ViewPager;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.util.TypedValue;
-import android.view.View;
+import android.support.v7.graphics.Palette;
+import android.support.v7.widget.Toolbar;
+import android.text.Html;
+import android.text.format.DateUtils;
+import android.util.Log;
 import android.view.ViewGroup;
-import android.widget.FrameLayout;
+import android.widget.ImageView;
+import android.widget.TextView;
 
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.ImageLoader;
 import com.example.xyzreader.R;
 import com.example.xyzreader.data.ArticleLoader;
 import com.example.xyzreader.data.ItemsContract;
 
+import java.text.ParseException;
+import java.util.Date;
+import java.util.GregorianCalendar;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
+
+import static com.example.xyzreader.ui.ArticleListActivity.outputFormat;
 
 /**
  * An activity representing a single Article detail screen, letting you swipe between articles.
  */
-public class ArticleDetailActivity extends AppCompatActivity
-        implements LoaderManager.LoaderCallbacks<Cursor> {
+public class ArticleDetailActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
+
+    private static final String TAG = ArticleDetailActivity.class.getSimpleName();
+    private GregorianCalendar START_OF_EPOCH = new GregorianCalendar(2,1,1);
 
     private Cursor mCursor;
-    private long mStartId;
-
     private long mSelectedItemId;
-    private int mSelectedItemUpButtonFloor = Integer.MAX_VALUE;
-    private int mTopInset;
 
-    @BindView(R.id.pager)
-    ViewPager mPager;
+    @BindView(R.id.detail_toolbar)
+    Toolbar mToolbar;
 
-    @BindView(R.id.up_container)
-    FrameLayout mUpButtonContainer;
+    @BindView(R.id.article_title)
+    TextView mTitleView;
 
-    private MyPagerAdapter mPagerAdapter;
-    private View mUpButton;
+    @BindView(R.id.article_byline)
+    TextView mSubtitleView;
+
+    @BindView(R.id.image)
+    ImageView mPhotoView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,56 +65,27 @@ public class ArticleDetailActivity extends AppCompatActivity
         setContentView(R.layout.activity_article_detail);
 
         ButterKnife.bind(this);
-        getSupportLoaderManager().initLoader(0, null, this);
+        setSupportActionBar(mToolbar);
 
-        mPagerAdapter = new MyPagerAdapter(getSupportFragmentManager());
-        mPager.setAdapter(mPagerAdapter);
-        mPager.setPageMargin((int) TypedValue
-                .applyDimension(TypedValue.COMPLEX_UNIT_DIP, 1, getResources().getDisplayMetrics()));
-        mPager.setPageMarginDrawable(new ColorDrawable(0x22000000));
-
-        mPager.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
-            @Override
-            public void onPageScrollStateChanged(int state) {
-                super.onPageScrollStateChanged(state);
-                mUpButton.animate()
-                        .alpha((state == ViewPager.SCROLL_STATE_IDLE) ? 1f : 0f)
-                        .setDuration(300);
-            }
-
-            @Override
-            public void onPageSelected(int position) {
-                if (mCursor != null) {
-                    mCursor.moveToPosition(position);
-                }
-                mSelectedItemId = mCursor.getLong(ArticleLoader.Query._ID);
-                updateUpButtonPosition();
-            }
-        });
-
-
-        mUpButton = findViewById(R.id.action_up);
-        mUpButton.setOnClickListener(view -> {
-            supportFinishAfterTransition();
-            onSupportNavigateUp();
-        });
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            mUpButtonContainer.setOnApplyWindowInsetsListener((view, windowInsets) -> {
-                view.onApplyWindowInsets(windowInsets);
-                mTopInset = windowInsets.getSystemWindowInsetTop();
-                mUpButtonContainer.setTranslationY(mTopInset);
-                updateUpButtonPosition();
-                return windowInsets;
-            });
+        ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.setDisplayHomeAsUpEnabled(true);
         }
+        getSupportLoaderManager().initLoader(0, null, this);
 
         if (savedInstanceState == null) {
             if (getIntent() != null && getIntent().getData() != null) {
-                mStartId = ItemsContract.Items.getItemId(getIntent().getData());
-                mSelectedItemId = mStartId;
+                mSelectedItemId = ItemsContract.Items.getItemId(getIntent().getData());
             }
+        } else {
+            mSelectedItemId = savedInstanceState.getLong(ItemsContract.Items._ID);
         }
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putLong(ItemsContract.Items._ID, mSelectedItemId);
     }
 
     @NonNull
@@ -113,40 +97,67 @@ public class ArticleDetailActivity extends AppCompatActivity
     @Override
     public void onLoadFinished(@NonNull Loader<Cursor> cursorLoader, Cursor cursor) {
         mCursor = cursor;
-        mPagerAdapter.notifyDataSetChanged();
+        buildView();
+    }
 
-        // Select the start ID
-        if (mStartId > 0) {
-            mCursor.moveToFirst();
-            // TODO: optimize
-            while (!mCursor.isAfterLast()) {
-                if (mCursor.getLong(ArticleLoader.Query._ID) == mStartId) {
-                    final int position = mCursor.getPosition();
-                    mPager.setCurrentItem(position, false);
-                    break;
-                }
-                mCursor.moveToNext();
-            }
-            mStartId = 0;
+    private void buildView() {
+        mCursor.moveToFirst();
+        String title = mCursor.getString(ArticleLoader.Query.TITLE);
+        mTitleView.setText(title);
+        mToolbar.setTitle(title);
+        Date publishedDate = parsePublishedDate();
+        if (!publishedDate.before(START_OF_EPOCH.getTime())) {
+            mSubtitleView.setText(Html.fromHtml(
+                    DateUtils.getRelativeTimeSpanString(
+                            publishedDate.getTime(),
+                            System.currentTimeMillis(), DateUtils.HOUR_IN_MILLIS,
+                            DateUtils.FORMAT_ABBREV_ALL).toString()
+                            + " by <font color='#ffffff'>"
+                            + mCursor.getString(ArticleLoader.Query.AUTHOR)
+                            + "</font>"));
+
+        } else {
+            mSubtitleView.setText(Html.fromHtml(
+                    outputFormat.format(publishedDate) + " by <font color='#ffffff'>"
+                            + mCursor.getString(ArticleLoader.Query.AUTHOR)
+                            + "</font>"));
+
+        }
+        buildImage();
+//        ArticleDetailFragment fragment = ArticleDetailFragment.newInstance(mCursor.getLong(ArticleLoader.Query._ID));
+//        getSupportFragmentManager().beginTransaction().add(R.id.article_container,fragment).commit();
+    }
+
+    private void buildImage() {
+        ImageLoaderHelper.getInstance(this).getImageLoader()
+                .get(mCursor.getString(ArticleLoader.Query.PHOTO_URL), new ImageLoader.ImageListener() {
+                    @Override
+                    public void onResponse(ImageLoader.ImageContainer imageContainer, boolean b) {
+                        Bitmap bitmap = imageContainer.getBitmap();
+                        if (bitmap != null) {
+                            mPhotoView.setImageBitmap(imageContainer.getBitmap());
+                        }
+                    }
+
+                    @Override
+                    public void onErrorResponse(VolleyError volleyError) {}
+                });
+    }
+
+    private Date parsePublishedDate() {
+        try {
+            String date = mCursor.getString(ArticleLoader.Query.PUBLISHED_DATE);
+            return ArticleListActivity.dateFormat.parse(date);
+        } catch (ParseException ex) {
+            Log.e(TAG, ex.getMessage());
+            Log.i(TAG, "passing today's date");
+            return new Date();
         }
     }
 
     @Override
     public void onLoaderReset(@NonNull Loader<Cursor> cursorLoader) {
         mCursor = null;
-        mPagerAdapter.notifyDataSetChanged();
-    }
-
-    public void onUpButtonFloorChanged(long itemId, ArticleDetailFragment fragment) {
-        if (itemId == mSelectedItemId) {
-            mSelectedItemUpButtonFloor = fragment.getUpButtonFloor();
-            updateUpButtonPosition();
-        }
-    }
-
-    private void updateUpButtonPosition() {
-        int upButtonNormalBottom = mTopInset + mUpButton.getHeight();
-        mUpButton.setTranslationY(Math.min(mSelectedItemUpButtonFloor - upButtonNormalBottom, 0));
     }
 
     private class MyPagerAdapter extends FragmentStatePagerAdapter {
@@ -157,10 +168,6 @@ public class ArticleDetailActivity extends AppCompatActivity
         @Override
         public void setPrimaryItem(@NonNull ViewGroup container, int position, @NonNull Object object) {
             super.setPrimaryItem(container, position, object);
-            ArticleDetailFragment fragment = (ArticleDetailFragment) object;
-            if (fragment != null) {
-                updateUpButtonPosition();
-            }
         }
 
         @Override

@@ -56,8 +56,8 @@ public class ArticleListActivity extends AppCompatActivity implements LoaderMana
     @BindView(R.id.toolbar)
     Toolbar mToolbar;
 
-    private SimpleDateFormat dateFormat = new SimpleDateFormat(PATTERN_DATE_ISO8601, Locale.getDefault());
-    private SimpleDateFormat outputFormat = new SimpleDateFormat();
+    public static SimpleDateFormat dateFormat = new SimpleDateFormat(PATTERN_DATE_ISO8601, Locale.getDefault());
+    public static SimpleDateFormat outputFormat = new SimpleDateFormat();
     private GregorianCalendar START_OF_EPOCH = new GregorianCalendar(2,1,1);
 
     @Override
