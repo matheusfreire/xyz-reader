@@ -24,38 +24,6 @@
             app:toolbarId="@+id/detail_toolbar"
             app:expandedTitleTextAppearance="@style/TextAppearance.Design.CollapsingToolbar.Expanded.Shadow">
 
-            <LinearLayout
-                android:id="@+id/meta_bar"
-                android:layout_width="match_parent"
-                android:layout_height="80dp"
-                android:background="@color/soft_black"
-                android:layout_gravity="bottom"
-                android:orientation="vertical"
-                android:paddingLeft="@dimen/detail_inner_horiz_margin"
-                android:paddingRight="@dimen/detail_inner_horiz_margin"
-                android:paddingTop="@dimen/detail_metabar_vert_padding"
-                android:paddingBottom="@dimen/detail_metabar_vert_padding">
-
-                <TextView
-                    android:id="@+id/article_title"
-                    style="?android:attr/textAppearanceLarge"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:paddingBottom="@dimen/detail_metabar_title_bottom_padding"
-                    android:fontFamily="sans-serif-condensed"
-                    android:textColor="@android:color/white"
-                    android:textStyle="bold"
-                    android:textSize="@dimen/detail_title_text_size"
-                    android:lineSpacingMultiplier="0.9" />
-
-                <TextView
-                    android:id="@+id/article_byline"
-                    style="?android:attr/textAppearanceSmall"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textColor="#8fff" />
-            </LinearLayout>
-
             <ImageView
                 android:id="@+id/image"
                 android:layout_width="wrap_content"

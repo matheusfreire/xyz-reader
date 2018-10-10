@@ -4,22 +4,13 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.design.widget.CollapsingToolbarLayout;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.graphics.Palette;
 import android.support.v7.widget.Toolbar;
-import android.text.Html;
-import android.text.format.DateUtils;
 import android.util.Log;
-import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.TextView;
 
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.ImageLoader;
@@ -34,8 +25,6 @@ import java.util.GregorianCalendar;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-import static com.example.xyzreader.ui.ArticleListActivity.outputFormat;
-
 /**
  * An activity representing a single Article detail screen, letting you swipe between articles.
  */
@@ -49,12 +38,6 @@ public class ArticleDetailActivity extends AppCompatActivity implements LoaderMa
 
     @BindView(R.id.detail_toolbar)
     Toolbar mToolbar;
-
-    @BindView(R.id.article_title)
-    TextView mTitleView;
-
-    @BindView(R.id.article_byline)
-    TextView mSubtitleView;
 
     @BindView(R.id.image)
     ImageView mPhotoView;
@@ -103,26 +86,7 @@ public class ArticleDetailActivity extends AppCompatActivity implements LoaderMa
     private void buildView() {
         mCursor.moveToFirst();
         String title = mCursor.getString(ArticleLoader.Query.TITLE);
-        mTitleView.setText(title);
         mToolbar.setTitle(title);
-        Date publishedDate = parsePublishedDate();
-        if (!publishedDate.before(START_OF_EPOCH.getTime())) {
-            mSubtitleView.setText(Html.fromHtml(
-                    DateUtils.getRelativeTimeSpanString(
-                            publishedDate.getTime(),
-                            System.currentTimeMillis(), DateUtils.HOUR_IN_MILLIS,
-                            DateUtils.FORMAT_ABBREV_ALL).toString()
-                            + " by <font color='#ffffff'>"
-                            + mCursor.getString(ArticleLoader.Query.AUTHOR)
-                            + "</font>"));
-
-        } else {
-            mSubtitleView.setText(Html.fromHtml(
-                    outputFormat.format(publishedDate) + " by <font color='#ffffff'>"
-                            + mCursor.getString(ArticleLoader.Query.AUTHOR)
-                            + "</font>"));
-
-        }
         buildImage();
 //        ArticleDetailFragment fragment = ArticleDetailFragment.newInstance(mCursor.getLong(ArticleLoader.Query._ID));
 //        getSupportFragmentManager().beginTransaction().add(R.id.article_container,fragment).commit();
@@ -158,27 +122,5 @@ public class ArticleDetailActivity extends AppCompatActivity implements LoaderMa
     @Override
     public void onLoaderReset(@NonNull Loader<Cursor> cursorLoader) {
         mCursor = null;
-    }
-
-    private class MyPagerAdapter extends FragmentStatePagerAdapter {
-        MyPagerAdapter(FragmentManager fm) {
-            super(fm);
-        }
-
-        @Override
-        public void setPrimaryItem(@NonNull ViewGroup container, int position, @NonNull Object object) {
-            super.setPrimaryItem(container, position, object);
-        }
-
-        @Override
-        public Fragment getItem(int position) {
-            mCursor.moveToPosition(position);
-            return ArticleDetailFragment.newInstance(mCursor.getLong(ArticleLoader.Query._ID));
-        }
-
-        @Override
-        public int getCount() {
-            return (mCursor != null) ? mCursor.getCount() : 0;
-        }
     }
 }
