@@ -1,5 +1,6 @@
 package com.example.xyzreader.ui;
 
+import android.app.ActivityOptions;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -143,8 +144,14 @@ public class ArticleListActivity extends AppCompatActivity implements LoaderMana
         public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
             View rootView = getLayoutInflater().inflate(R.layout.list_item_article, parent, false);
             final ViewHolder vh = new ViewHolder(rootView);
-            rootView.setOnClickListener(v -> startActivity(new Intent(Intent.ACTION_VIEW,
-                    ItemsContract.Items.buildItemUri(getItemId(vh.getAdapterPosition())))));
+            rootView.setOnClickListener(v -> {
+                Bundle bundle = ActivityOptions.makeSceneTransitionAnimation(
+                        ArticleListActivity.this, vh.thumbnailView, vh.thumbnailView.getTransitionName()).toBundle();
+                startActivity(new Intent(Intent.ACTION_VIEW,
+                        ItemsContract.Items.buildItemUri(getItemId(vh.getAdapterPosition()))),
+                        bundle
+                        );
+            });
             return vh;
         }
 
