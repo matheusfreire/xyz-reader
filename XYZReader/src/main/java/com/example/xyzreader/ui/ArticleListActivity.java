@@ -6,6 +6,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.LoaderManager;
@@ -20,6 +22,7 @@ import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.xyzreader.R;
@@ -27,6 +30,9 @@ import com.example.xyzreader.data.ArticleLoader;
 import com.example.xyzreader.data.ItemsContract;
 import com.example.xyzreader.data.UpdaterService;
 
+import java.io.ByteArrayOutputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -46,6 +52,7 @@ public class ArticleListActivity extends AppCompatActivity implements LoaderMana
 
     private static final String TAG = ArticleListActivity.class.toString();
     public static final String PATTERN_DATE_ISO8601 = "yyyy-MM-dd'T'HH:mm:ss.sss";
+    public static final String KEY_BITMAP = "thumbnail";
 
     @BindView(R.id.swipe_refresh_layout)
     SwipeRefreshLayout mSwipeRefreshLayout;
@@ -147,10 +154,8 @@ public class ArticleListActivity extends AppCompatActivity implements LoaderMana
             rootView.setOnClickListener(v -> {
                 Bundle bundle = ActivityOptions.makeSceneTransitionAnimation(
                         ArticleListActivity.this, vh.thumbnailView, vh.thumbnailView.getTransitionName()).toBundle();
-                startActivity(new Intent(Intent.ACTION_VIEW,
-                        ItemsContract.Items.buildItemUri(getItemId(vh.getAdapterPosition()))),
-                        bundle
-                        );
+                Intent intent = new Intent(Intent.ACTION_VIEW,ItemsContract.Items.buildItemUri(getItemId(vh.getAdapterPosition())));
+                startActivity(intent,bundle);
             });
             return vh;
         }
@@ -198,15 +203,18 @@ public class ArticleListActivity extends AppCompatActivity implements LoaderMana
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {
+        @BindView(R.id.thumbnail)
         DynamicHeightNetworkImageView thumbnailView;
+
+        @BindView(R.id.article_title)
         TextView titleView;
+
+        @BindView(R.id.article_subtitle)
         TextView subtitleView;
 
         ViewHolder(View view) {
             super(view);
-            thumbnailView = view.findViewById(R.id.thumbnail);
-            titleView = view.findViewById(R.id.article_title);
-            subtitleView = view.findViewById(R.id.article_subtitle);
+            ButterKnife.bind(this, view);
         }
     }
 }
