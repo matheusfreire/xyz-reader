@@ -73,10 +73,16 @@ public class ArticleDetailActivity extends AppCompatActivity implements LoaderMa
         outState.putLong(ItemsContract.Items._ID, mSelectedItemId);
     }
 
+    @Override
+    public void onBackPressed() {
+        supportFinishAfterTransition();
+        super.onBackPressed();
+    }
+
     @NonNull
     @Override
     public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
-        return ArticleLoader.newInstanceForItemId(this, mSelectedItemId);
+        return ArticleLoader.newAllArticlesInstance(this);
     }
 
     @Override
@@ -86,7 +92,15 @@ public class ArticleDetailActivity extends AppCompatActivity implements LoaderMa
     }
 
     private void buildView() {
-        mCursor.moveToFirst();
+        if (mSelectedItemId > 0) {
+            mCursor.moveToFirst();
+            while (!mCursor.isAfterLast()) {
+                if (mCursor.getLong(ArticleLoader.Query._ID) == mSelectedItemId) {
+                    break;
+                }
+                mCursor.moveToNext();
+            }
+        }
         buildImage();
         String title = mCursor.getString(ArticleLoader.Query.TITLE);
         mToolbar.setTitle(title);
