@@ -152,10 +152,8 @@ public class ArticleListActivity extends AppCompatActivity implements LoaderMana
             View rootView = getLayoutInflater().inflate(R.layout.list_item_article, parent, false);
             final ViewHolder vh = new ViewHolder(rootView);
             rootView.setOnClickListener(v -> {
-                Bundle bundle = ActivityOptions.makeSceneTransitionAnimation(
-                        ArticleListActivity.this, vh.thumbnailView, vh.thumbnailView.getTransitionName()).toBundle();
                 Intent intent = new Intent(Intent.ACTION_VIEW,ItemsContract.Items.buildItemUri(getItemId(vh.getAdapterPosition())));
-                startActivity(intent,bundle);
+                startActivity(intent);
             });
             return vh;
         }
