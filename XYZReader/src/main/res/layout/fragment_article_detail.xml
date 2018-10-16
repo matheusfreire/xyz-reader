@@ -8,7 +8,7 @@
         android:id="@+id/app_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:elevation="@dimen/elevation_2dp">
+        android:elevation="@dimen/elevation_4dp">
 
         <android.support.design.widget.CollapsingToolbarLayout
             android:id="@+id/collapsing_toolbar_detail"
@@ -110,6 +110,6 @@
         android:contentDescription="@string/action_share"
         android:focusable="true"
         android:src="@drawable/ic_share"
-        app:elevation="@dimen/elevation_2dp" />
+        app:elevation="@dimen/elevation_6dp" />
 
 </android.support.design.widget.CoordinatorLayout>
